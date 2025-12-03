@@ -13,7 +13,7 @@ import type {
 
 // LSM Entry table name in Dataverse
 const LSM_ENTRY_TABLE = "crf63_lsmentries";
-const USER_STORE_ACCESS_TABLE = "crf63_userstoreaccesss";
+const USER_STORE_ACCESS_TABLE = "crf63_userstoreaccess";
 
 /**
  * Convert Dataverse LSM entry to application format
@@ -96,16 +96,17 @@ export class DataverseService {
    * Get all LSM entries for accessible stores
    */
   async getLsmEntries(storeNumbers?: string[]): Promise<LsmEntry[]> {
-    let filter = "";
+    let queryParams = "$orderby=crf63_activitydate desc&$expand=createdby($select=name),modifiedby($select=name)";
+    
     if (storeNumbers && storeNumbers.length > 0) {
       const storeFilters = storeNumbers
         .map((s) => `crf63_storenumber eq '${s}'`)
         .join(" or ");
-      filter = `?$filter=${encodeURIComponent(storeFilters)}`;
+      queryParams = `$filter=${encodeURIComponent(storeFilters)}&${queryParams}`;
     }
 
     const response = await this.request<ApiResponse<DataverseLsmEntry>>(
-      `/${LSM_ENTRY_TABLE}${filter}&$orderby=crf63_activitydate desc&$expand=createdby($select=name),modifiedby($select=name)`
+      `/${LSM_ENTRY_TABLE}?${queryParams}`
     );
 
     return response.value.map(mapFromDataverse);

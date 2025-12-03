@@ -5,11 +5,19 @@
 
 import type { Configuration, PopupRequest } from "@azure/msal-browser";
 
-// MSAL configuration - these should be overridden with environment variables
+// Environment variables
+const clientId = import.meta.env.VITE_AZURE_CLIENT_ID as string | undefined;
+const tenantId = import.meta.env.VITE_AZURE_TENANT_ID as string | undefined;
+const dataverseUrlEnv = import.meta.env.VITE_DATAVERSE_URL as string | undefined;
+
+// Default Dataverse URL (can be overridden via environment)
+const DEFAULT_DATAVERSE_URL = "https://orgbf93e3c3.crm.dynamics.com";
+
+// MSAL configuration - environment variables are required in production
 export const msalConfig: Configuration = {
   auth: {
-    clientId: import.meta.env.VITE_AZURE_CLIENT_ID || "your-client-id",
-    authority: `https://login.microsoftonline.com/${import.meta.env.VITE_AZURE_TENANT_ID || "common"}`,
+    clientId: clientId || "",
+    authority: `https://login.microsoftonline.com/${tenantId || "common"}`,
     redirectUri: import.meta.env.VITE_REDIRECT_URI || window.location.origin,
     postLogoutRedirectUri: window.location.origin,
   },
@@ -19,15 +27,13 @@ export const msalConfig: Configuration = {
   },
 };
 
+// Dataverse API base URL
+export const dataverseUrl = dataverseUrlEnv || DEFAULT_DATAVERSE_URL;
+
 // Dataverse API scope for accessing Dataverse
-export const dataverseScope = import.meta.env.VITE_DATAVERSE_URL
-  ? `${import.meta.env.VITE_DATAVERSE_URL}/.default`
-  : "https://orgbf93e3c3.crm.dynamics.com/.default";
+export const dataverseScope = `${dataverseUrl}/.default`;
 
 // Login request configuration
 export const loginRequest: PopupRequest = {
   scopes: [dataverseScope],
 };
-
-// Dataverse API base URL
-export const dataverseUrl = import.meta.env.VITE_DATAVERSE_URL || "https://orgbf93e3c3.crm.dynamics.com";
